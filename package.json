@@ -1,0 +1,20 @@
+{
+  "name": "backend-project",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/priyankasahoo720530-hash/backend-project-.githttps:#readme",
+  "bugs": {
+    "url": "https://github.com/priyankasahoo720530-hash/backend-project-.githttps:/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/priyankasahoo720530-hash/backend-project-.githttps:.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
