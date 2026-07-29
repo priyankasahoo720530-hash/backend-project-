@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken"
 import { MongoClient } from "mongodb";
 import mongoose from "mongoose";
 import { Subscription } from "../models/subscription.model.js";
+import { Video } from "../models/video.model.js";
 
 const generateTokens = async (user) =>{
             const accessToken = await user.generateAccessToken()
@@ -310,6 +311,8 @@ const updateAvatar = asyncHandler(async(req,res) => {
 
 
 
+
+
  const getUserChannelProfile = asyncHandler(async (req,res) =>{
       const {username}  = req.params
       if(!username?.trim()){
@@ -373,9 +376,60 @@ const updateAvatar = asyncHandler(async(req,res) => {
 
  })
 
+ const getWatchHistory = asyncHandler(async (req, res) => {
+  const history = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id)
+      }
+    },
+    {
+      $lookup: {
+        from: "videos",          // plural
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",      // plural
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullname: 1,
+                    username: 1,
+                    avatar: 1
+                  }
+                }
+              ]
+            }
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      history[0].watchHistory,
+      "watch history fetched successfully"
+    )
+  );
+});
 
 export {loginUser,registerUser,logOutUser,refreshAccessToken
-    ,changePassword,getCurrentUser,updateAvatar,getUserChannelProfile
+    ,changePassword,getCurrentUser,updateAvatar,getUserChannelProfile,getWatchHistory
 }
 
 

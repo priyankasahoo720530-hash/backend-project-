@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser,loginUser,logOutUser,refreshAccessToken,changePassword, updateAvatar, getCurrentUser,getUserChannelProfile } from "../controllers/user.controller.js";
+import { registerUser,loginUser,logOutUser,refreshAccessToken,changePassword, updateAvatar, getCurrentUser,getUserChannelProfile,getWatchHistory } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import jwt from "jsonwebtoken";
 import verifyJWT from "../middlewares/auth.middleware.js";
@@ -33,5 +33,7 @@ userRouter.route("/avatar-update").post(verifyJWT,upload.single("avatar"),update
 userRouter.route("/profile").get(verifyJWT,getCurrentUser)
 
 userRouter.route("/channel/:username").get(verifyJWT,getUserChannelProfile)
+
+userRouter.route("/watch-history").get(verifyJWT,getWatchHistory)
 
 export default userRouter
