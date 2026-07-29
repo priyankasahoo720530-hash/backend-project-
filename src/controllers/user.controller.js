@@ -4,7 +4,9 @@ import { ApiError } from "../utils/apiError.js";
 import { uploadOnCloudinary } from "../utils/cloudnary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken"
-
+import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
+import { Subscription } from "../models/subscription.model.js";
 
 const generateTokens = async (user) =>{
             const accessToken = await user.generateAccessToken()
@@ -252,10 +254,128 @@ const updateAvatar = asyncHandler(async(req,res) => {
     .json(new ApiResponse(200,{},"done"))
 
 })
+//delete old avatar
+
+
+    /* const x = await User.aggregate([
+    {
+        $lookup: {
+        from: "orders",
+        localField: "_id",
+        foreignField: "userId",
+        as: "orders"
+        }
+    },
+    {
+        $unwind: "$orders"
+    },
+    {
+        $match: {
+        "orders.status": "Delivered",
+        "orders.category": "Electronics",
+        city: { $in: ["Bhubaneswar", "Delhi"] }
+        }
+    },
+    {
+        $group: {
+        _id: "$name",
+        city: { $first: "$city" },
+        totalSpent: { $sum: "$orders.amount" },
+        numberOfOrders: { $sum: 1 }
+        }
+    },
+    {
+        $match: {
+        totalSpent: { $gt: 2000 }
+        }
+    },
+    {
+        $sort: {
+        totalSpent: -1
+        }
+    },
+    {
+        $project: {
+        _id: 0,
+        user: "$_id",
+        city: 1,
+        totalSpent: 1,
+        numberOfOrders: 1
+        }
+    },
+    {
+        $limit: 2
+    }
+    ]);*/
+
+
+
+ const getUserChannelProfile = asyncHandler(async (req,res) =>{
+      const {username}  = req.params
+      if(!username?.trim()){
+        throw new ApiError(400 , "username is missing")
+      }
+
+      const channel = await User.aggregate([
+        {
+            $match : {
+                username : username
+            }
+        },
+        {
+            $lookup : {
+               from:  "subscription" ,
+               localField : "_id",
+               foreignField : "channel",
+               as:"subscribers"
+            }
+        },
+        {
+          $lookup :  { from:  "subscription" ,
+               localField : "_id",
+               foreignField : "subscriber",
+               as:"subscribedTo"}
+        },
+        {
+            $addFields : {
+                subscriberCount : {$size : "$subscribers"},
+                 subscriptionCount : {$size : "$subscribedTo"},
+                 isSubscribed : {
+                    $cond : {
+                        if: {$in : [req.user?._id, "$subscribers.subscriber"]},
+                        then: true ,
+                        else : false
+                    }
+                 }
+            }
+        },
+        {
+            $project : {
+                fullname : 1 ,
+                username : 1,
+                subscriberCount : 1 ,
+                subscriptionCount : 1,
+                isSubscribed : 1 ,
+                avatar : 1,
+                coverImage : 1,
+                email : 1
+            }
+        }
+
+      ])
+
+      return res
+      .status(200)
+      .json (
+        new ApiResponse(200,channel[0],"user channel fetched successfully")
+      )
+
+
+ })
 
 
 export {loginUser,registerUser,logOutUser,refreshAccessToken
-    ,changePassword,getCurrentUser,updateAvatar
+    ,changePassword,getCurrentUser,updateAvatar,getUserChannelProfile
 }
 
 
